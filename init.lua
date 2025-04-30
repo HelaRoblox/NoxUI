@@ -1,45 +1,44 @@
--- init.lua
 local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
 
--- Main library object
+-- Main UI Library Object
 local UILib = {}
 
 -- Function to create a window
 function UILib:CreateWindow(title)
-    -- Create the ScreenGui
+    -- Create the main ScreenGui
     local screenGui = Instance.new("ScreenGui")
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-    screenGui.Name = "UILibWindow"
+    screenGui.Name = "RayfieldWindow"
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.ResetOnSpawn = false
 
-    -- Create the main Frame (window)
+    -- Main frame (window)
     local mainFrame = Instance.new("Frame")
     mainFrame.Parent = screenGui
-    mainFrame.Size = UDim2.new(0, 420, 0, 340)
-    mainFrame.Position = UDim2.new(0.5, -210, 0.5, -170)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    mainFrame.BackgroundTransparency = 0.05
+    mainFrame.Size = UDim2.new(0, 600, 0, 400)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     mainFrame.BorderSizePixel = 0
     mainFrame.Name = "MainUI"
 
-    -- Rounded corners
+    -- Rounded corners for main frame
     local corner = Instance.new("UICorner", mainFrame)
-    corner.CornerRadius = UDim.new(0, 12)
+    corner.CornerRadius = UDim.new(0, 16)
 
-    -- Title
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Parent = mainFrame
-    titleLabel.Text = title or "My Custom UI"
-    titleLabel.Size = UDim2.new(1, 0, 0, 45)
-    titleLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextSize = 22
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
-    titleLabel.TextYAlignment = Enum.TextYAlignment.Center
+    -- Title bar
+    local titleBar = Instance.new("TextLabel")
+    titleBar.Parent = mainFrame
+    titleBar.Size = UDim2.new(1, 0, 0, 45)
+    titleBar.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+    titleBar.Text = title or "Rayfield UI"
+    titleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleBar.Font = Enum.Font.GothamBold
+    titleBar.TextSize = 22
+    titleBar.TextXAlignment = Enum.TextXAlignment.Center
+    titleBar.TextYAlignment = Enum.TextYAlignment.Center
 
-    -- UI List Layout for easy stacking of buttons
+    -- ListLayout for the content
     local layout = Instance.new("UIListLayout")
     layout.Parent = mainFrame
     layout.Padding = UDim.new(0, 10)
@@ -52,11 +51,11 @@ function UILib:CreateWindow(title)
         button.Parent = mainFrame
         button.Size = UDim2.new(1, -20, 0, 36)
         button.Position = UDim2.new(0, 10, 0, 60)
-        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        button.BackgroundColor3 = Color3.fromRGB(63, 63, 63)
         button.Text = text
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
         button.Font = Enum.Font.Gotham
-        button.TextSize = 17
+        button.TextSize = 18
         button.AutoButtonColor = false
         button.LayoutOrder = #mainFrame:GetChildren() + 1
 
@@ -66,14 +65,14 @@ function UILib:CreateWindow(title)
 
         -- Hover effect
         button.MouseEnter:Connect(function()
-            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(90, 90, 90)}):Play()
         end)
 
         button.MouseLeave:Connect(function()
-            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(63, 63, 63)}):Play()
         end)
 
-        -- Click callback
+        -- Button click callback
         button.MouseButton1Click:Connect(function()
             if callback then callback() end
         end)
@@ -91,11 +90,11 @@ function UILib:CreateWindow(title)
         local button = Instance.new("TextButton")
         button.Parent = toggleFrame
         button.Size = UDim2.new(0, 120, 1, 0)
-        button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        button.BackgroundColor3 = Color3.fromRGB(63, 63, 63)
         button.Text = text
         button.TextColor3 = Color3.fromRGB(255, 255, 255)
         button.Font = Enum.Font.Gotham
-        button.TextSize = 17
+        button.TextSize = 18
         button.AutoButtonColor = false
 
         -- Rounded corners for the button
@@ -106,12 +105,28 @@ function UILib:CreateWindow(title)
         button.MouseButton1Click:Connect(function()
             toggle = not toggle
             if callback then callback(toggle) end
-            button.BackgroundColor3 = toggle and Color3.fromRGB(70, 120, 70) or Color3.fromRGB(70, 70, 70)
+            button.BackgroundColor3 = toggle and Color3.fromRGB(44, 185, 44) or Color3.fromRGB(63, 63, 63)
         end)
 
         -- Initial toggle state
-        button.BackgroundColor3 = toggle and Color3.fromRGB(70, 120, 70) or Color3.fromRGB(70, 70, 70)
+        button.BackgroundColor3 = toggle and Color3.fromRGB(44, 185, 44) or Color3.fromRGB(63, 63, 63)
     end
+
+    -- Function to add a label
+    function UILib:AddLabel(text)
+        local label = Instance.new("TextLabel")
+        label.Parent = mainFrame
+        label.Size = UDim2.new(1, -20, 0, 36)
+        label.Position = UDim2.new(0, 10, 0, 60)
+        label.BackgroundTransparency = 1
+        label.Text = text
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.Font = Enum.Font.Gotham
+        label.TextSize = 18
+        label.LayoutOrder = #mainFrame:GetChildren() + 1
+    end
+
+    -- Optional: More components like sliders, dropdowns, etc.
 
     return UILib
 end
