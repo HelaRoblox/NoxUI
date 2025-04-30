@@ -1,179 +1,217 @@
 local NoxUI = {}
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local function CreateInstance(class, props)
+local function create(class, props)
 	local inst = Instance.new(class)
-	for k, v in pairs(props) do
-		inst[k] = v
+	for prop, val in pairs(props) do
+		inst[prop] = val
 	end
 	return inst
 end
 
-local function Tween(obj, goal, time)
-	TweenService:Create(obj, TweenInfo.new(time or 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+local function tween(obj, goal, time)
+	TweenService:Create(obj, TweenInfo.new(time or 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
 end
 
-function NoxUI:CreateWindow(title)
-	local ScreenGui = CreateInstance("ScreenGui", { Name = "NoxUI", Parent = game:GetService("CoreGui"), ResetOnSpawn = false })
-	local Shadow = CreateInstance("Frame", {
-		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-		BorderSizePixel = 0,
-		Size = UDim2.new(0, 500, 0, 320),
-		Position = UDim2.new(0.5, -250, 0.5, -160),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Parent = ScreenGui
+function NoxUI:CreateWindow(windowTitle)
+	local gui = create("ScreenGui", {
+		Name = "NoxUI",
+		ResetOnSpawn = false,
+		Parent = game:GetService("CoreGui"),
 	})
 
-	local UICorner = CreateInstance("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Shadow })
-	local Title = CreateInstance("TextLabel", {
-		Text = title or "Nox UI",
+	local main = create("Frame", {
+		Size = UDim2.new(0, 540, 0, 350),
+		Position = UDim2.new(0.5, -270, 0.5, -175),
+		BackgroundColor3 = Color3.fromRGB(245, 245, 255),
+		BorderSizePixel = 0,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Parent = gui,
+	})
+	create("UICorner", { CornerRadius = UDim.new(0, 16), Parent = main })
+	create("UIStroke", { ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Thickness = 1, Color = Color3.fromRGB(220, 220, 230), Parent = main })
+
+	local header = create("TextLabel", {
+		Text = windowTitle or "NoxUI",
 		Font = Enum.Font.GothamBold,
 		TextSize = 20,
-		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextColor3 = Color3.fromRGB(60, 60, 90),
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 40),
-		Parent = Shadow
+		Parent = main
 	})
 
-	local TabHolder = CreateInstance("Frame", {
+	local tabHolder = create("Frame", {
 		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 0, 0, 40),
 		Size = UDim2.new(1, 0, 0, 30),
-		Parent = Shadow
+		Position = UDim2.new(0, 0, 0, 45),
+		Parent = main
 	})
 
-	local Pages = CreateInstance("Frame", {
-		Position = UDim2.new(0, 0, 0, 70),
-		Size = UDim2.new(1, 0, 1, -70),
+	local tabLayout = create("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 8),
+		Parent = tabHolder
+	})
+
+	local contentFrame = create("Frame", {
+		Size = UDim2.new(1, -20, 1, -90),
+		Position = UDim2.new(0, 10, 0, 80),
 		BackgroundTransparency = 1,
 		ClipsDescendants = true,
-		Parent = Shadow
+		Parent = main
 	})
 
-	local tabs = {}
+	local pages = {}
+	local activePage = nil
 
-	function tabs:CreateTab(tabName)
-		local TabButton = CreateInstance("TextButton", {
-			Text = tabName,
-			Font = Enum.Font.Gotham,
-			TextSize = 16,
-			TextColor3 = Color3.new(1, 1, 1),
-			BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+	local api = {}
+
+	function api:CreateTab(name)
+		local button = create("TextButton", {
+			Text = name,
 			Size = UDim2.new(0, 100, 1, 0),
-			Parent = TabHolder
+			BackgroundColor3 = Color3.fromRGB(230, 230, 255),
+			TextColor3 = Color3.fromRGB(70, 70, 90),
+			Font = Enum.Font.GothamMedium,
+			TextSize = 14,
+			AutoButtonColor = false,
+			Parent = tabHolder,
 		})
-		local Page = CreateInstance("ScrollingFrame", {
+		create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = button })
+
+		local page = create("ScrollingFrame", {
 			Visible = false,
+			BackgroundTransparency = 1,
 			Size = UDim2.new(1, 0, 1, 0),
 			CanvasSize = UDim2.new(0, 0, 0, 0),
-			ScrollBarThickness = 6,
-			BackgroundTransparency = 1,
-			Parent = Pages
+			ScrollBarThickness = 4,
+			Parent = contentFrame
 		})
 
-		local Layout = Instance.new("UIListLayout", Page)
-		Layout.Padding = UDim.new(0, 6)
-		Layout.SortOrder = Enum.SortOrder.LayoutOrder
+		local layout = create("UIListLayout", {
+			Padding = UDim.new(0, 10),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = page
+		})
 
-		TabButton.MouseButton1Click:Connect(function()
-			for _, child in ipairs(Pages:GetChildren()) do
-				if child:IsA("ScrollingFrame") then child.Visible = false end
-			end
-			Page.Visible = true
+		button.MouseButton1Click:Connect(function()
+			if activePage then activePage.Visible = false end
+			page.Visible = true
+			activePage = page
 		end)
+
+		if not activePage then
+			page.Visible = true
+			activePage = page
+		end
 
 		local elements = {}
 
 		function elements:AddButton(text, callback)
-			local btn = CreateInstance("TextButton", {
+			local btn = create("TextButton", {
 				Text = text,
+				Size = UDim2.new(1, -10, 0, 32),
 				Font = Enum.Font.Gotham,
 				TextSize = 14,
-				TextColor3 = Color3.new(1, 1, 1),
-				BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-				Size = UDim2.new(1, -10, 0, 30),
-				Parent = Page
+				TextColor3 = Color3.fromRGB(50, 50, 80),
+				BackgroundColor3 = Color3.fromRGB(215, 230, 255),
+				Parent = page
 			})
-			CreateInstance("UICorner", { CornerRadius = UDim.new(0, 6), Parent = btn })
+			create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = btn })
 			btn.MouseButton1Click:Connect(callback)
 		end
 
 		function elements:AddToggle(text, default, callback)
-			local on = default or false
-			local toggle = CreateInstance("TextButton", {
+			local toggle = create("TextButton", {
 				Text = text .. ": OFF",
+				Size = UDim2.new(1, -10, 0, 32),
 				Font = Enum.Font.Gotham,
 				TextSize = 14,
-				TextColor3 = Color3.new(1, 1, 1),
-				BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-				Size = UDim2.new(1, -10, 0, 30),
-				Parent = Page
+				TextColor3 = Color3.fromRGB(50, 50, 80),
+				BackgroundColor3 = Color3.fromRGB(230, 230, 255),
+				Parent = page
 			})
-			CreateInstance("UICorner", { CornerRadius = UDim.new(0, 6), Parent = toggle })
+			create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = toggle })
+
+			local state = default or false
 			toggle.MouseButton1Click:Connect(function()
-				on = not on
-				toggle.Text = text .. ": " .. (on and "ON" or "OFF")
-				if callback then callback(on) end
+				state = not state
+				toggle.Text = text .. ": " .. (state and "ON" or "OFF")
+				if callback then callback(state) end
 			end)
 		end
 
-		function elements:AddSlider(name, min, max, default, callback)
-			local slider = CreateInstance("Frame", {
-				BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-				Size = UDim2.new(1, -10, 0, 40),
-				Parent = Page
-			})
-			CreateInstance("UICorner", { CornerRadius = UDim.new(0, 6), Parent = slider })
+		function elements:AddDropdown(name, items, callback)
+			local open = false
+			local selected = items[1]
 
-			local label = CreateInstance("TextLabel", {
-				Text = name .. ": " .. tostring(default),
+			local container = create("Frame", {
+				Size = UDim2.new(1, -10, 0, 32),
+				BackgroundColor3 = Color3.fromRGB(225, 230, 255),
+				Parent = page
+			})
+			create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = container })
+
+			local label = create("TextButton", {
+				Text = name .. ": " .. selected,
+				Size = UDim2.new(1, 0, 1, 0),
 				Font = Enum.Font.Gotham,
 				TextSize = 14,
-				TextColor3 = Color3.new(1, 1, 1),
+				TextColor3 = Color3.fromRGB(50, 50, 80),
 				BackgroundTransparency = 1,
-				Size = UDim2.new(1, 0, 0, 20),
-				Parent = slider
+				Parent = container
 			})
 
-			local bar = CreateInstance("Frame", {
-				BackgroundColor3 = Color3.fromRGB(100, 100, 100),
-				Position = UDim2.new(0, 5, 0, 22),
-				Size = UDim2.new(1, -10, 0, 10),
-				Parent = slider
+			local dropdown = create("Frame", {
+				BackgroundColor3 = Color3.fromRGB(240, 245, 255),
+				Position = UDim2.new(0, 0, 1, 4),
+				Size = UDim2.new(1, 0, 0, 0),
+				Visible = false,
+				Parent = container
 			})
-			local fill = CreateInstance("Frame", {
-				BackgroundColor3 = Color3.fromRGB(0, 150, 255),
-				Size = UDim2.new((default - min)/(max - min), 0, 1, 0),
-				Parent = bar
-			})
+			create("UICorner", { CornerRadius = UDim.new(0, 8), Parent = dropdown })
 
-			bar.InputBegan:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					local conn
-					conn = game:GetService("RunService").RenderStepped:Connect(function()
-						local mouseX = game:GetService("UserInputService"):GetMouseLocation().X
-						local rel = math.clamp((mouseX - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-						fill.Size = UDim2.new(rel, 0, 1, 0)
-						local value = math.floor(min + (max - min) * rel)
-						label.Text = name .. ": " .. tostring(value)
-						if callback then callback(value) end
-					end)
-					input.Changed:Connect(function()
-						if input.UserInputState == Enum.UserInputState.End then
-							conn:Disconnect()
-						end
-					end)
-				end
+			for _, item in ipairs(items) do
+				local option = create("TextButton", {
+					Text = item,
+					Font = Enum.Font.Gotham,
+					TextSize = 14,
+					TextColor3 = Color3.fromRGB(50, 50, 80),
+					Size = UDim2.new(1, 0, 0, 30),
+					BackgroundColor3 = Color3.fromRGB(240, 245, 255),
+					Parent = dropdown
+				})
+				option.MouseButton1Click:Connect(function()
+					selected = item
+					label.Text = name .. ": " .. item
+					dropdown.Visible = false
+					dropdown.Size = UDim2.new(1, 0, 0, 0)
+					open = false
+					if callback then callback(item) end
+				end)
+			end
+
+			label.MouseButton1Click:Connect(function()
+				open = not open
+				dropdown.Visible = open
+				tween(dropdown, { Size = open and UDim2.new(1, 0, 0, #items * 30 + 5) or UDim2.new(1, 0, 0, 0) }, 0.25)
 			end)
 		end
 
-		Page.Visible = #Pages:GetChildren() == 1
+		page.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+		layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			page.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+		end)
+
 		return elements
 	end
 
-	return tabs
+	return api
 end
 
 return NoxUI
