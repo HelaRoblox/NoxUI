@@ -1,3 +1,5 @@
+-- UILib: A Simple UI Library for Roblox
+
 local UILib = {}
 
 -- Utility function to create UI elements
@@ -100,5 +102,31 @@ function UILib.createCloseButton(window, callback)
 
     return closeButton
 end
+
+-- Example usage of the UILib
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create a window with title
+local window = UILib.createWindow(screenGui, "Example Window", UDim2.new(0, 400, 0, 300), UDim2.new(0.5, -200, 0.5, -150))
+
+-- Create a label inside the window
+UILib.createLabel(window, "Welcome to the UI!", UDim2.new(0.5, -100, 0.2, 0), UDim2.new(0, 200, 0, 50), {
+    textSize = 18,
+    textColor = Color3.fromRGB(255, 255, 255),
+    font = Enum.Font.GothamBold
+})
+
+-- Create a button that shows a message when clicked
+UILib.createButton(window, "Click Me", UDim2.new(0.5, -50, 0.4, 0), UDim2.new(0, 100, 0, 40), function()
+    print("Button clicked!")
+end, {
+    bgColor = Color3.fromRGB(0, 128, 255),
+    textColor = Color3.fromRGB(255, 255, 255),
+    hoverColor = Color3.fromRGB(0, 100, 200)
+})
+
+-- Create a close button for the window
+UILib.createCloseButton(window)
 
 return UILib
