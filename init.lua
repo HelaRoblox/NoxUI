@@ -10,13 +10,15 @@ local theme = {
 	Text = Color3.fromRGB(33, 33, 33),
 	Accent = Color3.fromRGB(140, 160, 255),
 	Font = Enum.Font.Gotham,
-	Round = UDim.new(0, 12)
+	Round = UDim.new(0, 12),
+	ShadowColor = Color3.fromRGB(0, 0, 0)
 }
 
 function NoxUI:CreateWindow(config)
 	local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 	ScreenGui.Name = config.Name or "NoxUI"
 	ScreenGui.ResetOnSpawn = false
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local Main = Instance.new("Frame", ScreenGui)
 	Main.Size = UDim2.new(0, 620, 0, 400)
@@ -25,10 +27,18 @@ function NoxUI:CreateWindow(config)
 	Main.BorderSizePixel = 0
 	Main.Name = "MainWindow"
 
+	local Shadow = Instance.new("ImageLabel", Main)
+	Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Shadow.Size = UDim2.new(1, 60, 1, 60)
+	Shadow.Image = "rbxassetid://1316045217"
+	Shadow.ImageTransparency = 0.75
+	Shadow.BackgroundTransparency = 1
+	Shadow.ZIndex = 0
+
 	local UICorner = Instance.new("UICorner", Main)
 	UICorner.CornerRadius = theme.Round
 
-	-- Top Bar
 	local Top = Instance.new("Frame", Main)
 	Top.Size = UDim2.new(1, 0, 0, 45)
 	Top.BackgroundColor3 = theme.TopBar
@@ -37,7 +47,7 @@ function NoxUI:CreateWindow(config)
 
 	local Title = Instance.new("TextLabel", Top)
 	Title.Text = config.Title or "NoxUI"
-	Title.Size = UDim2.new(1, -20, 1, 0)
+	Title.Size = UDim2.new(1, -50, 1, 0)
 	Title.Position = UDim2.new(0, 10, 0, 0)
 	Title.BackgroundTransparency = 1
 	Title.Font = theme.Font
@@ -45,25 +55,43 @@ function NoxUI:CreateWindow(config)
 	Title.TextSize = 20
 	Title.TextXAlignment = Enum.TextXAlignment.Left
 
-	-- Sidebar
+	-- ❌ Close Button
+	local Close = Instance.new("TextButton", Top)
+	Close.Text = "✕"
+	Close.Size = UDim2.new(0, 40, 1, 0)
+	Close.Position = UDim2.new(1, -40, 0, 0)
+	Close.BackgroundTransparency = 1
+	Close.Font = theme.Font
+	Close.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Close.TextSize = 22
+	Close.ZIndex = 2
+	Close.AutoButtonColor = false
+
+	Close.MouseButton1Click:Connect(function()
+		TweenService:Create(Main, TweenInfo.new(0.25), {
+			Size = UDim2.new(0, 620, 0, 0),
+			Position = UDim2.new(0.5, -310, 0.5, 0)
+		}):Play()
+		wait(0.25)
+		ScreenGui:Destroy()
+	end)
+
 	local Sidebar = Instance.new("Frame", Main)
 	Sidebar.Size = UDim2.new(0, 140, 1, -45)
 	Sidebar.Position = UDim2.new(0, 0, 0, 45)
 	Sidebar.BackgroundColor3 = theme.Sidebar
 	Sidebar.BorderSizePixel = 0
 	Sidebar.Name = "Sidebar"
-
 	local SidebarCorner = Instance.new("UICorner", Sidebar)
 	SidebarCorner.CornerRadius = theme.Round
 
-	-- Content Area
 	local Content = Instance.new("Frame", Main)
 	Content.Size = UDim2.new(1, -140, 1, -45)
 	Content.Position = UDim2.new(0, 140, 0, 45)
 	Content.BackgroundTransparency = 1
 	Content.Name = "Content"
 
-	-- Dragging
+	-- 🖱️ Dragging
 	local dragging, dragInput, dragStart, startPos
 	Top.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
