@@ -1,5 +1,6 @@
 local UILib = {}
 
+-- Utility function to create UI elements
 function UILib.createElement(className, properties)
     local element = Instance.new(className)
     for prop, value in pairs(properties) do
@@ -8,6 +9,7 @@ function UILib.createElement(className, properties)
     return element
 end
 
+-- Function to create a window
 function UILib.createWindow(parent, title, size, position)
     local window = UILib.createElement("Frame", {
         Name = title,
@@ -18,7 +20,8 @@ function UILib.createWindow(parent, title, size, position)
         BorderSizePixel = 0,
         ClipsDescendants = true,
     })
-    
+
+    -- Title Label
     local titleLabel = UILib.createElement("TextLabel", {
         Parent = window,
         Size = UDim2.new(1, 0, 0, 40),
@@ -32,10 +35,11 @@ function UILib.createWindow(parent, title, size, position)
         TextAlignment = Enum.TextAlignment.Center,
         TextXAlignment = Enum.TextXAlignment.Center
     })
-    
+
     return window
 end
 
+-- Function to create a button
 function UILib.createButton(parent, text, position, size, callback, styles)
     local button = UILib.createElement("TextButton", {
         Parent = parent,
@@ -49,22 +53,23 @@ function UILib.createButton(parent, text, position, size, callback, styles)
         BorderSizePixel = 0,
         AutoButtonColor = true,
     })
-    
+
     button.MouseEnter:Connect(function()
         button.BackgroundColor3 = styles.hoverColor or Color3.fromRGB(70, 70, 70)
     end)
-    
+
     button.MouseLeave:Connect(function()
         button.BackgroundColor3 = styles.bgColor or Color3.fromRGB(50, 50, 50)
     end)
-    
+
     button.MouseButton1Click:Connect(function()
         callback()
     end)
-    
+
     return button
 end
 
+-- Function to create a label
 function UILib.createLabel(parent, text, position, size, styles)
     local label = UILib.createElement("TextLabel", {
         Parent = parent,
@@ -82,37 +87,17 @@ function UILib.createLabel(parent, text, position, size, styles)
     return label
 end
 
-function UILib.createPanel(parent, position, size, styles)
-    local panel = UILib.createElement("Frame", {
-        Parent = parent,
-        Position = position,
-        Size = size,
-        BackgroundColor3 = styles.bgColor or Color3.fromRGB(60, 60, 60),
-        BorderSizePixel = 0,
-        BackgroundTransparency = styles.transparency or 0
-    })
-    
-    return panel
-end
-
-function UILib.addGradient(panel, colors, rotation)
-    local gradient = UILib.createElement("UIGradient", {
-        Parent = panel,
-        Color = colors or ColorSequence.new(Color3.fromRGB(255, 0, 0), Color3.fromRGB(0, 0, 255)),
-        Rotation = rotation or 45
-    })
-end
-
+-- Function to create a close button
 function UILib.createCloseButton(window, callback)
     local closeButton = UILib.createButton(window, "Close", UDim2.new(0.95, -50, 0.05, 0), UDim2.new(0, 40, 0, 40), function()
-        callback()
+        window:Destroy()
     end, {
         bgColor = Color3.fromRGB(255, 0, 0),
         textColor = Color3.fromRGB(255, 255, 255),
         hoverColor = Color3.fromRGB(200, 0, 0),
         font = Enum.Font.GothamBold
     })
-    
+
     return closeButton
 end
 
